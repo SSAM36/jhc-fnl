@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><line x1=%22100%22 y1=%2250%22 x2=%2250%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%22100%22 y1=%2250%22 x2=%22150%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%2250%22 y1=%22100%22 x2=%22100%22 y2=%22150%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%22150%22 y1=%22100%22 x2=%22100%22 y2=%22150%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%2250%22 y1=%22100%22 x2=%22150%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22 opacity=%220.3%22/><circle cx=%22100%22 cy=%2250%22 r=%2212%22 fill=%22%238b5cf6%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%2250%22 cy=%22100%22 r=%2212%22 fill=%22%236366f1%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22150%22 cy=%22100%22 r=%2212%22 fill=%22%236366f1%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22100%22 cy=%22150%22 r=%2212%22 fill=%22%23a78bfa%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22100%22 cy=%22100%22 r=%228%22 fill=%22%23c4b5fd%22 stroke=%22%23fff%22 stroke-width=%222%22 opacity=%220.6%22/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AI Brainstorm - Orchestrate multiple AI models to brainstorm and solve complex problems together" />
+    <title>AI Brainstorm - Multi-Model AI Collaboration</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- Session History (Left Sidebar) -->
+      <div id="session-history" class="session-history">
+        <div class="session-header">
+          <h2>Sessions</h2>
+          <button id="new-session-btn" class="new-session-btn">+ New</button>
+        </div>
+        <div id="session-list" class="session-list"></div>
+        <div class="resize-handle resize-handle-right" data-panel="session-history"></div>
+      </div>
+
+      <!-- Main Chat (Center) -->
+      <div id="main-chat" class="main-chat">
+        <!-- Conversation Tree Navigation -->
+        <div id="conversation-tree-container" class="conversation-tree-container">
+          <div class="tree-header">
+            <div class="tree-header-left">
+              <button id="toggle-sidebar-btn" class="toggle-sidebar-btn" title="Toggle Sessions">☰</button>
+              <button id="settings-btn" class="settings-btn" title="Settings">⚙</button>
+            </div>
+            <div id="tree-header-center" class="tree-header-center" title="Click to collapse/expand">
+              <span id="tree-collapse-icon" class="tree-collapse-icon">▼</span>
+              <h3>Conversations</h3>
+            </div>
+            <div class="tree-header-right">
+              <span id="tree-indicator" class="tree-indicator">0 conversations</span>
+              <button id="toggle-agent-panel-btn" class="toggle-agent-panel-btn" title="Toggle Agent Chat">💬</button>
+            </div>
+          </div>
+          <div id="conversation-tree" class="conversation-tree-scroll"></div>
+          <div id="tree-resize-handle" class="tree-resize-handle"></div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="chat-messages"></div>
+        
+        <!-- Legacy Navigation (kept for keyboard shortcuts) -->
+        <div class="chat-navigation" style="display: none;">
+          <button id="prev-btn" class="nav-btn">&lt;</button>
+          <span id="conversation-indicator" class="conversation-indicator">No conversations</span>
+          <button id="next-btn" class="nav-btn">&gt;</button>
+        </div>
+        
+        <div class="chat-input-container">
+          <div class="chat-input-wrapper">
+            <textarea id="chat-input" class="chat-input" placeholder="Type your message..." rows="1"></textarea>
+            <button id="send-btn" class="send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Chat Panel (Right) -->
+      <div id="agent-panel" class="agent-panel">
+        <div class="resize-handle resize-handle-left" data-panel="agent-panel"></div>
+        <div class="agent-header">
+          <div class="agent-header-top">
+            <div class="agent-chat-selector">
+              <select id="agent-chat-select" class="agent-chat-select">
+                <!-- Populated dynamically -->
+              </select>
+              <button id="new-agent-chat-btn" class="new-agent-chat-btn" title="New Agent Chat">+</button>
+            </div>
+            <button id="delete-agent-chat-btn" class="delete-agent-chat-btn" title="Delete Chat">🗑</button>
+          </div>
+          <div class="agent-header-model">
+            <span class="agent-model-label">Agent:</span>
+            <span id="agent-model-display" class="agent-model-name" title="Click to change in Settings">--</span>
+          </div>
+        </div>
+
+        <div class="agent-chat-section">
+          <div id="agent-messages" class="agent-messages"></div>
+          <!-- Suggestions section for council and other actions -->
+          <div id="agent-suggestions" class="agent-suggestions"></div>
+          <div class="agent-input-wrapper">
+            <div class="agent-input-container">
+              <textarea id="agent-input" class="agent-input" placeholder="Ask the agent to brainstorm, compare models, or analyze responses..." rows="1"></textarea>
+              <button id="agent-send-btn" class="agent-send-btn" title="Send message">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+            <div class="agent-input-hint">Press Enter to send, Shift+Enter for new line</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal (hidden by default) -->
+    <div id="settings-modal-backdrop" class="modal-backdrop" style="display: none;">
+      <div class="settings-modal">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button id="modal-close-btn" class="modal-close-btn" title="Close">✕</button>
+        </div>
+        <div class="modal-content">
+          <!-- API Key Section -->
+          <div class="modal-section">
+            <h3>API Key</h3>
+            <div class="modal-input-group">
+              <input type="password" id="modal-api-key-input" class="modal-input" placeholder="Enter OpenRouter API Key" />
+              <button id="modal-save-api-key-btn" class="modal-btn modal-btn-success">Save</button>
+            </div>
+          </div>
+
+          <!-- Agent Model Section -->
+          <div class="modal-section">
+            <h3>Agent Model</h3>
+            <p class="modal-section-desc">The model used to orchestrate conversations. Pick a preset or enter a custom model ID.</p>
+            <div class="agent-model-config">
+              <div class="agent-model-row">
+                <div class="agent-model-suggestions">
+                  <label class="modal-label">Presets</label>
+                  <select id="modal-agent-model-select" class="modal-select">
+                    <option value="">-- Select a preset --</option>
+                    <optgroup label="Fast & Cheap">
+                      <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="x-ai/grok-4-fast">Grok 4 Fast</option>
+                      <option value="openai/gpt-5-mini">GPT-5 Mini</option>
+                      <option value="anthropic/claude-haiku-4.5">Claude Haiku 4.5</option>
+                    </optgroup>
+                    <optgroup label="Premium">
+                      <option value="anthropic/claude-opus-4.5">Claude Opus 4.5</option>
+                      <option value="google/gemini-3-pro-preview">Gemini 3 Pro Preview</option>
+                      <option value="openai/gpt-5.1">GPT-5.1</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="agent-model-custom">
+                  <label class="modal-label">Custom Model ID</label>
+                  <div class="modal-input-group">
+                    <input type="text" id="modal-agent-model-input" class="modal-input" placeholder="e.g., openai/gpt-4o" />
+                    <button id="modal-set-agent-model-btn" class="modal-btn modal-btn-primary">Set</button>
+                  </div>
+                </div>
+              </div>
+              <div class="agent-model-current">
+                <span class="modal-label">Current Agent:</span>
+                <span id="modal-current-agent-model" class="current-model-badge">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Models Section -->
+          <div class="modal-section">
+            <div class="modal-section-header">
+              <h3>Active Models</h3>
+              <div class="preset-selector-group">
+                <select id="modal-preset-select" class="modal-select-inline">
+                  <option value="">Custom Configuration</option>
+                  <option value="max">Max (Premium)</option>
+                  <option value="fast-cheap">Fast & Cheap</option>
+                  <option value="exp">Experimental</option>
+                </select>
+              </div>
+            </div>
+            <div id="modal-active-models-list" class="modal-models-list"></div>
+            <div class="modal-add-model-form">
+              <input type="text" id="modal-model-id-input" class="modal-input" placeholder="Model ID (e.g., openai/gpt-4o)" />
+              <input type="text" id="modal-model-name-input" class="modal-input" placeholder="Model Name" />
+              <button id="modal-add-model-btn" class="modal-btn modal-btn-primary">Add Model</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
