@@ -3,6 +3,7 @@
 // Supports both client-side and proxy modes
 
 import { config } from './config.js';
+import { recordInteraction, calculateQualityScore } from './model-analytics.js';
 
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
@@ -73,12 +74,53 @@ function createRetryPrompt(originalMessages) {
   return retryMessages;
 }
 
+// Track analytics for API response
+async function trackAnalytics(data, modelId, startTime, taskType = 'general') {
+  try {
+    const responseTime = Date.now() - startTime;
+    const content = extractMessageContent(data);
+    const usage = data.usage || {};
+    
+    // Get model name (try to extract from modelId)
+    const modelName = modelId.split('/').pop() || modelId;
+    
+    // Calculate quality score
+    const qualityScore = calculateQualityScore(content, responseTime, data.error);
+    
+    // Estimate cost (rough estimate, actual cost depends on model pricing)
+    // This is a placeholder - actual cost calculation would need model-specific pricing
+    const estimatedCost = (usage.prompt_tokens || 0) * 0.000001 + (usage.completion_tokens || 0) * 0.000002;
+    
+    recordInteraction({
+      modelId,
+      modelName,
+      taskType,
+      responseTime,
+      promptTokens: usage.prompt_tokens || 0,
+      completionTokens: usage.completion_tokens || 0,
+      totalTokens: usage.total_tokens || 0,
+      cost: estimatedCost,
+      qualityScore,
+      finishReason: data.choices?.[0]?.finish_reason || null,
+      responseLength: content.length,
+      error: data.error || null
+    });
+  } catch (error) {
+    // Silently fail analytics tracking
+    console.error('Analytics tracking error:', error);
+  }
+}
+
 // Send chat completion request to OpenRouter with automatic truncation handling
 export async function sendChatCompletion(modelId, messages, apiKey, options = {}) {
   // In proxy mode, API key is not required (handled server-side)
   if (!config.useProxy && !apiKey) {
     throw new Error('API key is required');
   }
+
+  // Track start time for analytics
+  const startTime = Date.now();
+  const taskType = options.taskType || 'general';
 
   // Ensure messages have concise-complete instruction
   let processedMessages = ensureConciseCompleteMessages(messages);
@@ -128,6 +170,11 @@ export async function sendChatCompletion(modelId, messages, apiKey, options = {}
       }
 
       const data = await response.json();
+      
+      // Track analytics (async, don't block)
+      trackAnalytics(data, modelId, startTime, taskType).catch(err => 
+        console.error('Analytics tracking error:', err)
+      );
       
       // Check if response was truncated
       if (isTruncated(data) && retryCount < maxRetries) {
@@ -201,6 +248,10 @@ export async function sendStreamingChatCompletion(modelId, messages, apiKey, onC
   if (!config.useProxy && !apiKey) {
     throw new Error('API key is required');
   }
+
+  // Track start time for analytics
+  const startTime = Date.now();
+  const taskType = options.taskType || 'general';
 
   // Ensure messages have concise-complete instruction
   let processedMessages = ensureConciseCompleteMessages(messages);
@@ -304,6 +355,15 @@ export async function sendStreamingChatCompletion(modelId, messages, apiKey, onC
         const retryResponse = await sendChatCompletion(modelId, processedMessages, apiKey, retryOptions);
         const retryContent = extractMessageContent(retryResponse);
         
+        // Track analytics for retry
+        const retryData = {
+          ...retryResponse,
+          usage: retryResponse.usage || { total_tokens: 0 }
+        };
+        trackAnalytics(retryData, modelId, startTime, taskType).catch(err => 
+          console.error('Analytics tracking error:', err)
+        );
+        
         // Send the complete retry response to ensure caller gets full content
         // The retry response is complete and concise, so we send it entirely
         // Caller's accumulation will handle it (may result in partial + complete, but complete is better than truncated)
@@ -323,6 +383,17 @@ export async function sendStreamingChatCompletion(modelId, messages, apiKey, onC
         }
         
         return; // Return after successful retry
+      }
+      
+      // Track analytics for streaming response (approximate)
+      if (fullContent) {
+        const streamingData = {
+          choices: [{ message: { content: fullContent }, finish_reason: wasTruncated ? 'length' : 'stop' }],
+          usage: { total_tokens: Math.ceil(fullContent.length / 4) } // Rough estimate
+        };
+        trackAnalytics(streamingData, modelId, startTime, taskType).catch(err => 
+          console.error('Analytics tracking error:', err)
+        );
       }
       
       // If we got here, either it wasn't truncated or we've exhausted retries

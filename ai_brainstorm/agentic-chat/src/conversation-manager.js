@@ -5,6 +5,8 @@
 
 import { sendChatCompletion, extractMessageContent, sendStreamingChatCompletion } from './openrouter-client.js';
 import { loadApiKey } from './api-key-manager.js';
+import { updatePersonalityProfile } from './model-personality.js';
+import { learnFromTask, inferTaskType } from './model-selection.js';
 
 // State
 let agentChats = []; // Array of agent chat objects { id, name, history, createdAt }
@@ -257,13 +259,30 @@ export async function createConversations(modelIds, initialPrompt, onConversatio
         apiKey
       );
       
+      const content = extractMessageContent(response);
       const assistantMessage = {
         role: 'assistant',
-        content: extractMessageContent(response),
+        content,
         timestamp: Date.now()
       };
       
       conv.history.push(assistantMessage);
+      
+      // Update personality profile (async)
+      updatePersonalityProfile(conv.modelId, conv.modelName).catch(err =>
+        console.error('Personality update error:', err)
+      );
+      
+      // Learn from task (async)
+      const taskType = inferTaskType(initialPrompt);
+      learnFromTask(taskType, conv.modelId, {
+        success: !content.startsWith('Error:'),
+        qualityScore: response.qualityScore || null,
+        responseTime: Date.now() - (assistantMessage.timestamp - 5000), // Approximate
+        cost: response.usage ? (response.usage.prompt_tokens + response.usage.completion_tokens) * 0.000001 : 0
+      }).catch(err =>
+        console.error('Learning error:', err)
+      );
       
       // Notify about state change
       notifyStateChange();
@@ -356,6 +375,23 @@ export async function sendUserMessage(message, onStreamChunk = null) {
     };
     
     conversation.history.push(assistantMessage);
+    
+    // Update personality profile (async)
+    updatePersonalityProfile(conversation.modelId, conversation.modelName).catch(err =>
+      console.error('Personality update error:', err)
+    );
+    
+    // Learn from task (async)
+    const taskType = inferTaskType(message);
+    learnFromTask(taskType, conversation.modelId, {
+      success: !fullContent.startsWith('Error:'),
+      qualityScore: null, // Would need to be passed from response
+      responseTime: Date.now() - (assistantMessage.timestamp - 5000), // Approximate
+      cost: 0 // Would need to be calculated from response
+    }).catch(err =>
+      console.error('Learning error:', err)
+    );
+    
     notifyStateChange();
     return assistantMessage;
   } catch (error) {
@@ -534,6 +570,22 @@ export async function branchConversation(parentConversationId, branchCount, prom
           timestamp: Date.now()
         };
         branch.history.push(assistantMessage);
+        
+        // Update personality profile (async)
+        updatePersonalityProfile(branch.modelId, branch.modelName).catch(err =>
+          console.error('Personality update error:', err)
+        );
+        
+        // Learn from task (async)
+        const taskType = inferTaskType(prompt);
+        learnFromTask(taskType, branch.modelId, {
+          success: !fullContent.startsWith('Error:'),
+          qualityScore: null,
+          responseTime: Date.now() - (assistantMessage.timestamp - 5000),
+          cost: 0
+        }).catch(err =>
+          console.error('Learning error:', err)
+        );
       } else {
         // Non-streaming for other branches
         const response = await sendChatCompletion(
@@ -542,12 +594,29 @@ export async function branchConversation(parentConversationId, branchCount, prom
           apiKey
         );
         
+        const content = extractMessageContent(response);
         const assistantMessage = {
           role: 'assistant',
-          content: extractMessageContent(response),
+          content,
           timestamp: Date.now()
         };
         branch.history.push(assistantMessage);
+        
+        // Update personality profile (async)
+        updatePersonalityProfile(branch.modelId, branch.modelName).catch(err =>
+          console.error('Personality update error:', err)
+        );
+        
+        // Learn from task (async)
+        const taskType = inferTaskType(prompt);
+        learnFromTask(taskType, branch.modelId, {
+          success: !content.startsWith('Error:'),
+          qualityScore: null,
+          responseTime: Date.now() - (assistantMessage.timestamp - 5000),
+          cost: 0
+        }).catch(err =>
+          console.error('Learning error:', err)
+        );
       }
       
       notifyStateChange();
