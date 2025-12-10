@@ -139,6 +139,15 @@ export default async function handler(req, res) {
 
   try {
     // Forward request to OpenRouter
+    // Ensure max_tokens is set to minimize credit usage (default 200 tokens for 2-3 lines)
+    const requestBody = {
+      model,
+      messages,
+      stream,
+      max_tokens: 200, // Default to 200 tokens to minimize credit usage
+      ...options // Allow override via options
+    };
+
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -149,12 +158,7 @@ export default async function handler(req, res) {
         'X-Title': 'AI Brainstorm',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        stream,
-        ...options
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
