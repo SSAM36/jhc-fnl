@@ -432,6 +432,17 @@ function init() {
 
   prevBtn.addEventListener('click', handlePrevConversation);
   nextBtn.addEventListener('click', handleNextConversation);
+
+  // Hide the loading overlay after initialization completes
+  const loadingOverlay = document.querySelector('.loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.style.opacity = '0';
+    loadingOverlay.style.pointerEvents = 'none';
+    // Remove it from DOM after fade-out animation completes
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+    }, 300);
+  }
 }
 
 // Sidebar Toggle
