@@ -1,311 +1,134 @@
-/**
- * Enhanced Design System
- * 
- * Core design tokens for the Agentic Multi-Model Chat application.
- * Inspired by ChatGPT, Claude, and modern design systems.
- */
+/* ================================================================
+   DESIGN SYSTEM - ESSENTIAL TOKENS FOR AI COUNCIL
+   ================================================================ */
 
+/* Color Palette */
 :root {
-  /* ============================================
-     COLOR PALETTE - Enhanced Dark Theme
-     ============================================ */
-  
-  /* Enhanced Backgrounds */
-  --bg-primary: #0d0d0d;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2d2d2d;
-  --bg-hover: #3d3d3d;
-  
-  /* Enhanced Borders */
-  --border-subtle: #2d2d2d;
-  --border-default: #404040;
-  --border-strong: #525252;
-  
-  /* Enhanced Text */
-  --text-primary: #f0f0f0;
-  --text-secondary: #a1a1a1;
-  --text-tertiary: #737373;
-  --text-disabled: #525252;
-  
-  /* Enhanced Brand Colors */
-  --brand-primary: #6366f1;
-  --brand-hover: #4f46e5;
-  --brand-active: #4338ca;
-  
-  /* Semantic Colors */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #06b6d4;
+  /* Primary Blues - Light Theme */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
 
-  /* ============================================
-     ENHANCED SOUL COLORS - Wise Laboratory Palette
-     ============================================ */
+  /* Dark Theme Blues */
+  --color-dark-50: #f0f9ff;
+  --color-dark-100: #e0f2fe;
+  --color-dark-200: #bae6fd;
+  --color-dark-300: #7dd3fc;
+  --color-dark-400: #38bdf8;
+  --color-dark-500: #0ea5e9;
+  --color-dark-600: #0284c7;
+  --color-dark-700: #0369a1;
+  --color-dark-800: #075985;
+  --color-dark-900: #0c2d42;
+  
+  /* Deep Dark Navy */
+  --color-navy-50: #f8fafc;
+  --color-navy-100: #f1f5f9;
+  --color-navy-200: #e2e8f0;
+  --color-navy-300: #cbd5e1;
+  --color-navy-400: #94a3b8;
+  --color-navy-500: #64748b;
+  --color-navy-600: #475569;
+  --color-navy-700: #334155;
+  --color-navy-800: #1e293b;
+  --color-navy-900: #0f172a;
+  --color-navy-950: #020617;
 
-  /* Enhanced Wisdom accent */
-  --accent-wisdom: #d97706;
-  --accent-wisdom-subtle: rgba(217, 119, 6, 0.2);
-  --accent-wisdom-glow: 0 0 30px rgba(217, 119, 6, 0.4);
+  /* Secondary Colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
 
-  /* Enhanced Discovery accent */
-  --accent-discovery: #059669;
-  --accent-discovery-subtle: rgba(5, 150, 105, 0.2);
-  --accent-discovery-glow: 0 0 30px rgba(5, 150, 105, 0.4);
+  /* Success, Warning, Error */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
 
-  /* Enhanced Inquiry accent */
-  --accent-inquiry: #6366f1;
-  --accent-inquiry-subtle: rgba(99, 102, 241, 0.2);
-  --accent-inquiry-glow: 0 0 30px rgba(99, 102, 241, 0.4);
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-mono: 'Courier New', monospace;
 
-  /* Enhanced Contemplation */
-  --contemplation-bg: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent);
-  --contemplation-pulse: rgba(99, 102, 241, 0.2);
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
 
-  /* ============================================
-     ENHANCED CONTEMPLATIVE ANIMATION TIMING
-     ============================================ */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
-  --duration-contemplate: 2.5s;
-  --duration-insight: 1.8s;
-  --ease-breathe: cubic-bezier(0.4, 0, 0.2, 1);
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
 
-  /* Enhanced Message Colors */
-  --msg-user-bg: linear-gradient(135deg, #6366f1, #4f46e5);
-  --msg-user-text: #ffffff;
-  --msg-assistant-bg: linear-gradient(135deg, #2d2d2d, #1a1a1a);
-  --msg-assistant-text: #f0f0f0;
-  
-  /* ============================================
-     ENHANCED SHADOWS
-     ============================================ */
-  
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7);
-  --shadow-xxl: 0 32px 64px rgba(0, 0, 0, 0.8);
-  
-  /* ============================================
-     ENHANCED TYPOGRAPHY
-     ============================================ */
-  
-  /* Enhanced Font Families */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
-               'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', 
-               Consolas, 'Courier New', monospace;
-  
-  /* Enhanced Font Sizes */
-  --text-xs: 0.75rem;      /* 12px */
-  --text-sm: 0.875rem;     /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg: 1.125rem;     /* 18px */
-  --text-xl: 1.25rem;      /* 20px */
-  --text-2xl: 1.5rem;      /* 24px */
-  --text-3xl: 1.875rem;    /* 30px */
-  --text-4xl: 2.25rem;     /* 36px */
-  
-  /* Enhanced Font Weights */
-  --font-thin: 100;
-  --font-extralight: 200;
-  --font-light: 300;
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
-  --font-extrabold: 800;
-  --font-black: 900;
-  
-  /* Enhanced Line Heights */
-  --leading-tight: 1.2;
-  --leading-snug: 1.3;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.75;
-  --leading-loose: 2;
-  
-  /* ============================================
-     ENHANCED SPACING SCALE
-     ============================================ */
-  
-  --space-0: 0rem;        /* 0px */
-  --space-px: 0.0625rem;  /* 1px */
-  --space-0_5: 0.125rem;  /* 2px */
-  --space-1: 0.25rem;     /* 4px */
-  --space-1_5: 0.375rem;  /* 6px */
-  --space-2: 0.5rem;      /* 8px */
-  --space-2_5: 0.625rem;  /* 10px */
-  --space-3: 0.75rem;     /* 12px */
-  --space-3_5: 0.875rem;  /* 14px */
-  --space-4: 1rem;        /* 16px */
-  --space-5: 1.25rem;     /* 20px */
-  --space-6: 1.5rem;      /* 24px */
-  --space-7: 1.75rem;     /* 28px */
-  --space-8: 2rem;        /* 32px */
-  --space-9: 2.25rem;     /* 36px */
-  --space-10: 2.5rem;     /* 40px */
-  --space-11: 2.75rem;    /* 44px */
-  --space-12: 3rem;       /* 48px */
-  --space-14: 3.5rem;     /* 56px */
-  --space-16: 4rem;       /* 64px */
-  --space-20: 5rem;       /* 80px */
-  --space-24: 6rem;       /* 96px */
-  --space-28: 7rem;       /* 112px */
-  --space-32: 8rem;       /* 128px */
-  --space-36: 9rem;       /* 144px */
-  --space-40: 10rem;      /* 160px */
-  --space-44: 11rem;      /* 176px */
-  --space-48: 12rem;      /* 192px */
-  --space-52: 13rem;      /* 208px */
-  --space-56: 14rem;      /* 224px */
-  --space-60: 15rem;      /* 240px */
-  --space-64: 16rem;      /* 256px */
-  --space-72: 18rem;      /* 288px */
-  --space-80: 20rem;      /* 320px */
-  --space-96: 24rem;      /* 384px */
-  
-  /* ============================================
-     ENHANCED BORDER RADIUS
-     ============================================ */
-  
-  --radius-none: 0rem;
-  --radius-sm: 0.375rem;   /* 6px */
-  --radius-md: 0.5rem;     /* 8px */
-  --radius-lg: 0.75rem;    /* 12px */
-  --radius-xl: 1rem;       /* 16px */
-  --radius-2xl: 1.5rem;    /* 24px */
-  --radius-3xl: 2rem;      /* 32px */
-  --radius-full: 9999px;   /* Fully rounded */
-  
-  /* ============================================
-     ENHANCED ANIMATION TIMING
-     ============================================ */
-  
-  /* Enhanced Durations */
-  --duration-75: 75ms;
-  --duration-100: 100ms;
-  --duration-150: 150ms;
-  --duration-200: 200ms;
-  --duration-300: 300ms;
-  --duration-500: 500ms;
-  --duration-700: 700ms;
-  --duration-1000: 1000ms;
-  
-  --duration-fast: var(--duration-150);
-  --duration-normal: var(--duration-300);
-  --duration-slow: var(--duration-500);
-  --duration-slower: var(--duration-700);
-  
-  /* Enhanced Easing Functions */
-  --ease-linear: linear;
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  --ease-back: cubic-bezier(0.68, -0.55, 0.27, 1.55);
-  
-  /* ============================================
-     ENHANCED GRADIENTS
-     ============================================ */
-  
-  --gradient-primary: linear-gradient(135deg, var(--brand-primary), var(--brand-hover));
-  --gradient-secondary: linear-gradient(135deg, var(--accent-wisdom), var(--accent-discovery));
-  --gradient-dark: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
-  --gradient-light: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  
-  /* ============================================
-     ENHANCED GLASS MORPHISM
-     ============================================ */
-  
-  --glass-bg: rgba(26, 26, 26, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  --glass-blur: blur(10px);
-  
-  /* ============================================
-     ENHANCED Z-INDEX
-     ============================================ */
-  
-  --z-0: 0;
-  --z-10: 10;
-  --z-20: 20;
-  --z-30: 30;
-  --z-40: 40;
-  --z-50: 50;
-  --z-auto: auto;
+  /* Spacing Scale */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+
+  /* Border Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Transitions & Animations */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --animation-duration-short: 150ms;
+  --animation-duration-normal: 300ms;
+  --animation-duration-long: 500ms;
+
+  --timing-function-ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --timing-function-ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* ============================================
-   REDUCED MOTION SUPPORT
-   ============================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --duration-75: 0ms;
-    --duration-100: 0ms;
-    --duration-150: 0ms;
-    --duration-200: 0ms;
-    --duration-300: 0ms;
-    --duration-500: 0ms;
-    --duration-700: 0ms;
-    --duration-1000: 0ms;
-    
-    --duration-fast: 0ms;
-    --duration-normal: 0ms;
-    --duration-slow: 0ms;
-    --duration-slower: 0ms;
-    
-    --duration-contemplate: 0ms;
-    --duration-insight: 0ms;
-  }
-  
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ============================================
-   DARK THEME OVERRIDES
-   ============================================ */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Enhanced contrast for dark mode */
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #151515;
-    --bg-tertiary: #252525;
-    
-    --text-primary: #f5f5f5;
-    --text-secondary: #b0b0b0;
-    --text-tertiary: #808080;
-  }
-}
-
-/* ============================================
-   HIGH CONTRAST MODE
-   ============================================ */
-
-@media (prefers-contrast: high) {
-  :root {
-    --text-primary: #ffffff;
-    --text-secondary: #cccccc;
-    --border-default: #666666;
-  }
-}
-
-/* ============================================
-   PRINT STYLES
-   ============================================ */
-
-@media print {
-  :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --text-primary: #000000;
-    --text-secondary: #333333;
-  }
+/* Z-Index Scale */
+:root {
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 1000;
+  --z-modal: 1001;
+  --z-popover: 1002;
+  --z-tooltip: 1003;
+  --z-loading: 9999;
 }

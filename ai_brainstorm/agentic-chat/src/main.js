@@ -50,7 +50,7 @@ import {
   restoreMostRecentSession,
   onStateChange as onSessionStateChange
 } from './session-manager.js';
-import { renderSessionList, showDeleteConfirmation } from './session-history-ui.js';
+import { renderSessionList, showDeleteConfirmation, displayConversationDetails, hideConversationDetails, displayConversationOnRightPanel } from './session-history-ui.js';
 import {
   initBranchIndicator,
   updateBranchIndicator,
@@ -61,10 +61,23 @@ import { initPanelResize } from './panel-resize.js';
 
 // DOM Elements
 const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
-const toggleAgentPanelBtn = document.getElementById('toggle-agent-panel-btn');
+const toggleResultsBtn = document.getElementById('toggle-results-btn');
 const sessionHistory = document.getElementById('session-history');
-const agentPanel = document.getElementById('agent-panel');
+const resultsPanel = document.getElementById('results-panel');
 const newSessionBtn = document.getElementById('new-session-btn');
+
+// Debate Mode & Features
+const debateModeBtn = document.getElementById('debate-mode-btn');
+const sendToCounselorBtn = document.getElementById('send-to-counselor-btn');
+const counselorInput = document.getElementById('counselor-input');
+const counselorChatMessages = document.getElementById('counselor-chat-messages');
+
+// Model Selector Elements
+const modelPrevBtn = document.getElementById('model-prev-btn');
+const modelNextBtn = document.getElementById('model-next-btn');
+const currentModelName = document.getElementById('current-model-name');
+const modelIndicators = document.querySelectorAll('.model-indicator');
+const voiceBtn = document.getElementById('voice-btn');
 
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
@@ -72,36 +85,16 @@ const sendBtn = document.getElementById('send-btn');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const conversationIndicator = document.getElementById('conversation-indicator');
-const conversationTreeContainer = document.getElementById('conversation-tree');
-const treeIndicator = document.getElementById('tree-indicator');
-const treeContainer = document.getElementById('conversation-tree-container');
-const treeHeaderCenter = document.getElementById('tree-header-center');
-const treeResizeHandle = document.getElementById('tree-resize-handle');
 
 // Settings Modal Elements
-const settingsBtn = document.getElementById('settings-btn');
 const modalBackdrop = document.getElementById('settings-modal-backdrop');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalApiKeyInput = document.getElementById('modal-api-key-input');
 const modalSaveApiKeyBtn = document.getElementById('modal-save-api-key-btn');
-const modalAgentModelSelect = document.getElementById('modal-agent-model-select');
-const modalPresetSelect = document.getElementById('modal-preset-select');
 const modalActiveModelsList = document.getElementById('modal-active-models-list');
 const modalModelIdInput = document.getElementById('modal-model-id-input');
 const modalModelNameInput = document.getElementById('modal-model-name-input');
 const modalAddModelBtn = document.getElementById('modal-add-model-btn');
-const modalAgentModelInput = document.getElementById('modal-agent-model-input');
-const modalSetAgentModelBtn = document.getElementById('modal-set-agent-model-btn');
-const modalCurrentAgentModel = document.getElementById('modal-current-agent-model');
-
-const agentMessages = document.getElementById('agent-messages');
-const agentInput = document.getElementById('agent-input');
-const agentSendBtn = document.getElementById('agent-send-btn');
-const agentSuggestions = document.getElementById('agent-suggestions');
-const agentChatSelect = document.getElementById('agent-chat-select');
-const newAgentChatBtn = document.getElementById('new-agent-chat-btn');
-const deleteAgentChatBtn = document.getElementById('delete-agent-chat-btn');
-const agentModelDisplay = document.getElementById('agent-model-display');
 
 // Settings Modal Functions
 function openSettingsModal() {
@@ -113,12 +106,6 @@ function openSettingsModal() {
   if (apiKey) {
     modalApiKeyInput.value = apiKey;
   }
-
-  // Update agent model display
-  updateAgentModelDisplay();
-
-  // Update preset dropdown to reflect current state
-  updatePresetDropdown();
 
   renderModalActiveModels();
 }
@@ -321,7 +308,7 @@ function init() {
   onConversationStateChange(() => {
     autoSave();
     renderCurrentConversation();
-    renderTree();
+    renderCurrentConversation();
   });
   
   // Restore most recent session
@@ -336,82 +323,39 @@ function init() {
     modalApiKeyInput.value = apiKey;
   }
 
-  // Load agent model and update display
-  updateAgentModelDisplay();
-
-  // Load current preset into modal (auto-detected or saved)
-  updatePresetDropdown();
-
-  // Initialize branch indicator
-  const mainChat = document.querySelector('.main-chat');
-  initBranchIndicator(mainChat);
-  setupScrollSync(chatMessages);
-
-  // Initialize panel resize functionality
-  initPanelResize();
-
-  // Initialize tree resize and collapse
-  initTreeResize();
-  treeHeaderCenter.addEventListener('click', handleToggleTreeCollapse);
+  // Initialize model display
+  updateModelDisplay();
 
   // Render UI
   renderModalActiveModels();
   renderSessionHistory();
-  renderAgentChatSelector();
-  renderAgentMessages();
-  renderAgentSuggestions();
   renderCurrentConversation();
-  renderTree();
   updateConversationIndicator();
-  updateBranchIndicatorFromConversation();
   
   // Set initial toggle button states
-  toggleSidebarBtn.textContent = '◀';
-  toggleSidebarBtn.title = 'Hide Sessions';
-  toggleAgentPanelBtn.textContent = '▶';
-  toggleAgentPanelBtn.title = 'Hide Agent Chat';
+  toggleSidebarBtn.innerHTML = '<i class="fas fa-bars"></i>';
+  toggleSidebarBtn.title = 'Hide History';
 
   // Setup event listeners
   toggleSidebarBtn.addEventListener('click', handleToggleSidebar);
-  toggleAgentPanelBtn.addEventListener('click', handleToggleAgentPanel);
+  toggleResultsBtn.addEventListener('click', handleToggleResults);
   newSessionBtn.addEventListener('click', handleNewSession);
   
   // Settings modal listeners
-  settingsBtn.addEventListener('click', openSettingsModal);
   modalCloseBtn.addEventListener('click', closeSettingsModal);
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeSettingsModal();
   });
   modalSaveApiKeyBtn.addEventListener('click', handleModalSaveApiKey);
-  modalAgentModelSelect.addEventListener('change', handleModalAgentModelChange);
-  modalSetAgentModelBtn.addEventListener('click', handleSetCustomAgentModel);
-  modalAgentModelInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSetCustomAgentModel();
-    }
-  });
-  modalPresetSelect.addEventListener('change', handleModalPresetChange);
   modalAddModelBtn.addEventListener('click', handleModalAddModel);
   
-  // Agent chat management
-  newAgentChatBtn.addEventListener('click', handleNewAgentChat);
-  agentChatSelect.addEventListener('change', handleAgentChatChange);
-  deleteAgentChatBtn.addEventListener('click', handleDeleteAgentChat);
-
-  agentSendBtn.addEventListener('click', handleAgentSend);
-  agentInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleAgentSend();
-    }
+  // Model selector listeners
+  modelPrevBtn.addEventListener('click', handleModelPrevious);
+  modelNextBtn.addEventListener('click', handleModelNext);
+  modelIndicators.forEach((indicator, index) => {
+    indicator.addEventListener('click', () => handleModelIndicatorClick(index + 1));
   });
-
-  // Auto-grow agent textarea
-  agentInput.addEventListener('input', () => {
-    agentInput.style.height = 'auto';
-    agentInput.style.height = Math.min(agentInput.scrollHeight, 200) + 'px';
-  });
+  voiceBtn.addEventListener('click', handleVoiceInput);
 
   sendBtn.addEventListener('click', handleSendMessage);
   chatInput.addEventListener('keydown', (e) => {
@@ -433,6 +377,16 @@ function init() {
   prevBtn.addEventListener('click', handlePrevConversation);
   nextBtn.addEventListener('click', handleNextConversation);
 
+  // Debate Mode and Counselor listeners
+  debateModeBtn.addEventListener('click', handleDebateMode);
+  sendToCounselorBtn.addEventListener('click', handleSendToCounselor);
+  counselorInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendToCounselor();
+    }
+  });
+
   // Hide the loading overlay after initialization completes
   const loadingOverlay = document.querySelector('.loading-overlay');
   if (loadingOverlay) {
@@ -446,126 +400,158 @@ function init() {
 }
 
 // Sidebar Toggle
+// Current model state (1, 2, or 3)
+let currentModel = 1;
+const MODELS = [
+  { name: 'Claude Opus', id: 'claude-opus' },
+  { name: 'GPT-4', id: 'gpt-4' },
+  { name: 'Gemini Pro', id: 'gemini-pro' }
+];
+
 function handleToggleSidebar() {
-  sessionHistory.classList.toggle('collapsed');
+  sessionHistory.classList.toggle('hidden');
   updateToggleButton();
 }
 
 function updateToggleButton() {
-  if (sessionHistory.classList.contains('collapsed')) {
-    toggleSidebarBtn.textContent = '▶';
-    toggleSidebarBtn.title = 'Show Sessions';
+  if (sessionHistory.classList.contains('hidden')) {
+    toggleSidebarBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    toggleSidebarBtn.title = 'Show History';
   } else {
-    toggleSidebarBtn.textContent = '◀';
-    toggleSidebarBtn.title = 'Hide Sessions';
+    toggleSidebarBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    toggleSidebarBtn.title = 'Hide History';
   }
 }
 
-// Agent Panel Toggle
-function handleToggleAgentPanel() {
-  agentPanel.classList.toggle('collapsed');
-  updateAgentPanelToggleButton();
+function handleToggleResults() {
+  resultsPanel.classList.toggle('hidden');
+  updateResultsToggleButton();
 }
 
-function updateAgentPanelToggleButton() {
-  if (agentPanel.classList.contains('collapsed')) {
-    toggleAgentPanelBtn.textContent = '◀';
-    toggleAgentPanelBtn.title = 'Show Agent Chat';
+function updateResultsToggleButton() {
+  if (resultsPanel.classList.contains('hidden')) {
+    toggleResultsBtn.innerHTML = '<i class="fas fa-times"></i>';
+    toggleResultsBtn.title = 'Show Analysis';
   } else {
-    toggleAgentPanelBtn.textContent = '▶';
-    toggleAgentPanelBtn.title = 'Hide Agent Chat';
+    toggleResultsBtn.innerHTML = '<i class="fas fa-times"></i>';
+    toggleResultsBtn.title = 'Close Analysis';
   }
 }
 
-// Conversation Tree Collapse/Expand
-function handleToggleTreeCollapse() {
-  treeContainer.classList.toggle('collapsed');
-  saveTreeCollapseState();
+function handleModelPrevious() {
+  currentModel = currentModel > 1 ? currentModel - 1 : MODELS.length;
+  updateModelDisplay();
 }
 
-function saveTreeCollapseState() {
-  const isCollapsed = treeContainer.classList.contains('collapsed');
-  localStorage.setItem('tree-collapsed', isCollapsed ? 'true' : 'false');
+function handleModelNext() {
+  currentModel = currentModel < MODELS.length ? currentModel + 1 : 1;
+  updateModelDisplay();
 }
 
-function loadTreeCollapseState() {
-  const saved = localStorage.getItem('tree-collapsed');
-  if (saved === 'true') {
-    treeContainer.classList.add('collapsed');
-  }
+function handleModelIndicatorClick(modelNumber) {
+  currentModel = modelNumber;
+  updateModelDisplay();
 }
 
-// Tree Resize
-let isResizingTree = false;
-let treeStartY = 0;
-let treeStartHeight = 0;
-
-function initTreeResize() {
-  // Load saved height
-  const savedHeight = localStorage.getItem('tree-height');
-  if (savedHeight) {
-    treeContainer.style.maxHeight = savedHeight;
-  }
-
-  // Load collapse state
-  loadTreeCollapseState();
-
-  treeResizeHandle.addEventListener('mousedown', startTreeResize);
-  treeResizeHandle.addEventListener('touchstart', startTreeResizeTouch, { passive: false });
-  document.addEventListener('mousemove', doTreeResize);
-  document.addEventListener('mouseup', stopTreeResize);
-  document.addEventListener('touchmove', doTreeResizeTouch, { passive: false });
-  document.addEventListener('touchend', stopTreeResize);
+function updateModelDisplay() {
+  const model = MODELS[currentModel - 1];
+  currentModelName.textContent = model.name;
+  
+  // Update active indicator
+  modelIndicators.forEach((indicator, index) => {
+    if (index === currentModel - 1) {
+      indicator.classList.add('active');
+    } else {
+      indicator.classList.remove('active');
+    }
+  });
+  
+  // Update UI to show this model's conversation
+  updateConversationForModel();
+  updateAnalysisPanel();
 }
 
-function startTreeResize(e) {
-  if (treeContainer.classList.contains('collapsed')) return;
-  e.preventDefault();
-  isResizingTree = true;
-  treeStartY = e.clientY;
-  treeStartHeight = treeContainer.offsetHeight;
-  document.body.style.cursor = 'row-resize';
-  document.body.style.userSelect = 'none';
+function updateConversationForModel() {
+  // This would load the conversation for the currently selected model
+  renderCurrentConversation();
 }
 
-function startTreeResizeTouch(e) {
-  if (treeContainer.classList.contains('collapsed')) return;
-  e.preventDefault();
-  isResizingTree = true;
-  treeStartY = e.touches[0].clientY;
-  treeStartHeight = treeContainer.offsetHeight;
+function updateAnalysisPanel() {
+  // Populate the analysis panel with conversation data for this model
+  const modelsResults = document.getElementById('models-results');
+  
+  // Show current model response
+  const model = MODELS[currentModel - 1];
+  modelsResults.innerHTML = `
+    <div class="result-box">
+      <div class="result-box-title">${model.name}</div>
+      <div class="result-box-content">
+        Conversation active. Send a message to see responses from all models.
+      </div>
+    </div>
+  `;
+  
+  // Show counselor chat after initial setup
+  showCounselorChat();
+  
+  // Check if all 4 models have responded and show conclusion
+  checkAndShowRefereeConclusion();
 }
 
-function doTreeResize(e) {
-  if (!isResizingTree) return;
-  e.preventDefault();
-  const deltaY = e.clientY - treeStartY;
-  const newHeight = Math.max(100, Math.min(window.innerHeight * 0.7, treeStartHeight + deltaY));
-  treeContainer.style.maxHeight = `${newHeight}px`;
+// Generate and display referee conclusion when all 4 models respond
+function checkAndShowRefereeConclusion() {
+  const refereeSection = document.getElementById('referee-conclusion-section');
+  const conclusionPoints = document.getElementById('conclusion-points');
+  
+  // For now, generate a sample conclusion based on active model count
+  // In a real scenario, this would check if all models have actually responded
+  
+  // Simulated conclusion points
+  const conclusions = [
+    {
+      label: 'Consensus',
+      text: 'All models agree on the core approach and main objectives of the discussion.'
+    },
+    {
+      label: 'Key Insights',
+      text: 'Multiple perspectives reveal important factors that should be considered in the decision-making process.'
+    },
+    {
+      label: 'Recommendations',
+      text: 'Based on all responses, the optimal path forward involves synthesizing the strongest points from each model.'
+    },
+    {
+      label: 'Action Items',
+      text: 'Implement the recommended approach with specific attention to the consensus points identified above.'
+    }
+  ];
+  
+  conclusionPoints.innerHTML = '';
+  conclusions.forEach((point, index) => {
+    const pointEl = document.createElement('div');
+    pointEl.className = 'conclusion-point';
+    pointEl.style.animationDelay = `${index * 0.1}s`;
+    pointEl.innerHTML = `
+      <span class="conclusion-point-label">${point.label}</span>
+      <span class="conclusion-point-text">${point.text}</span>
+    `;
+    conclusionPoints.appendChild(pointEl);
+  });
+  
+  // Show the referee conclusion section
+  refereeSection.style.display = 'block';
 }
 
-function doTreeResizeTouch(e) {
-  if (!isResizingTree) return;
-  e.preventDefault();
-  const deltaY = e.touches[0].clientY - treeStartY;
-  const newHeight = Math.max(100, Math.min(window.innerHeight * 0.7, treeStartHeight + deltaY));
-  treeContainer.style.maxHeight = `${newHeight}px`;
-}
-
-function stopTreeResize() {
-  if (!isResizingTree) return;
-  isResizingTree = false;
-  document.body.style.cursor = '';
-  document.body.style.userSelect = '';
-  // Save the new height
-  localStorage.setItem('tree-height', treeContainer.style.maxHeight);
+function handleVoiceInput() {
+  // Placeholder for voice input functionality
+  console.log('Voice input not yet implemented');
 }
 
 // Session Management
 function renderSessionHistory() {
   const sessions = getAllSessions();
   const currentSessionId = getCurrentSessionId();
-  renderSessionList(sessions, currentSessionId, handleSessionSelect, handleDeleteSession);
+  renderSessionList(sessions, currentSessionId, handleSessionSelect, handleDeleteSession, handleConversationView);
 }
 
 function handleNewSession() {
@@ -573,12 +559,9 @@ function handleNewSession() {
     const newSession = createNewSession();
     setState(newSession);
     renderSessionHistory();
-    renderAgentChatSelector();
-    renderAgentMessages();
-    renderAgentSuggestions();
     renderCurrentConversation();
-    renderTree();
     updateConversationIndicator();
+    updateAnalysisPanel();
   } catch (error) {
     console.error('Error creating new session:', error);
     alert(`Error creating new session: ${error.message}`);
@@ -590,12 +573,9 @@ function handleSessionSelect(sessionId) {
     const session = loadSession(sessionId);
     setState(session);
     renderSessionHistory();
-    renderAgentChatSelector();
-    renderAgentMessages();
-    renderAgentSuggestions();
     renderCurrentConversation();
-    renderTree();
     updateConversationIndicator();
+    updateAnalysisPanel();
   } catch (error) {
     console.error('Error loading session:', error);
     alert(`Error loading session: ${error.message}`);
@@ -624,18 +604,45 @@ function handleDeleteSession(sessionId) {
     }
 
     renderSessionHistory();
-    renderAgentChatSelector();
-    renderAgentMessages();
-    renderAgentSuggestions();
     renderCurrentConversation();
-    renderTree();
     updateConversationIndicator();
+    updateAnalysisPanel();
   } catch (error) {
     console.error('Error deleting session:', error);
     alert(`Error deleting session: ${error.message}`);
   }
 }
 
+// Conversation Details Viewer
+function handleConversationView(sessionId) {
+  try {
+    const sessions = getAllSessions();
+    const session = sessions.find(s => s.id === sessionId);
+    
+    if (!session) {
+      console.error('Session not found');
+      return;
+    }
+    
+    // Get the current conversation from the session
+    const conversationMessages = session.conversations && session.conversations.length > 0
+      ? session.conversations[0].messages || []
+      : [];
+    
+    // Display the conversation details on LEFT panel
+    displayConversationDetails(session.name, conversationMessages);
+    
+    // Display the conversation on RIGHT panel as well
+    displayConversationOnRightPanel(conversationMessages);
+  } catch (error) {
+    console.error('Error viewing conversation:', error);
+  }
+}
+
+// Attach close button listener for conversation details
+document.getElementById('close-conversation-btn').addEventListener('click', () => {
+  hideConversationDetails();
+});
 
 
 // Agent Chat Selector
@@ -1275,6 +1282,127 @@ function handleTreeToggle(conversationId) {
   setExpandedConversations(expandedIds);
   
   renderTree();
+}
+
+// ================================================================
+// DEBATE MODE & COUNSELOR FEATURES
+// ================================================================
+
+// Handle Debate Mode activation
+function handleDebateMode() {
+  const reasoningSection = document.getElementById('reasoning-timeline-section');
+  
+  if (reasoningSection.style.display === 'none') {
+    reasoningSection.style.display = 'block';
+    debateModeBtn.classList.add('active');
+    debateModeBtn.innerHTML = '<i class="fas fa-times"></i><span>Exit Debate</span>';
+    
+    // Show reasoning timeline and animate stages
+    animateReasoningTimeline();
+  } else {
+    reasoningSection.style.display = 'none';
+    debateModeBtn.classList.remove('active');
+    debateModeBtn.innerHTML = '<i class="fas fa-comments"></i><span>Debate Mode</span>';
+  }
+}
+
+// Animate reasoning timeline stages sequentially
+function animateReasoningTimeline() {
+  const stages = document.querySelectorAll('.timeline-stage');
+  
+  stages.forEach((stage, index) => {
+    setTimeout(() => {
+      const stageNum = index + 1;
+      const textEl = document.getElementById(`stage-${stageNum}-text`);
+      
+      const stageTexts = [
+        'Analyzing the question and context...',
+        'Evaluating multiple perspectives and evidence...',
+        'Considering counterarguments and limitations...',
+        'Synthesizing conclusion with confidence levels...'
+      ];
+      
+      if (textEl && stageTexts[index]) {
+        textEl.textContent = stageTexts[index];
+      }
+    }, index * 300);
+  });
+}
+
+// Handle sending message to counselor
+function handleSendToCounselor() {
+  const message = counselorInput.value.trim();
+  
+  if (!message) return;
+  
+  // Hide recommendations on first message
+  const recommendationsArea = document.getElementById('recommendations-area');
+  if (recommendationsArea && recommendationsArea.style.display !== 'none') {
+    recommendationsArea.style.display = 'none';
+  }
+  
+  // Display user message
+  displayCounselorMessage(message, 'user');
+  counselorInput.value = '';
+  counselorInput.style.height = 'auto';
+  
+  // Simulate counselor response
+  setTimeout(() => {
+    const responses = [
+      'Based on the council discussion, I recommend considering the consensus points carefully.',
+      'The models have highlighted several important factors you should evaluate.',
+      'This approach combines the strongest insights from all perspectives.',
+      'Key takeaway: Focus on the areas where all models agree for the best outcome.',
+      'I analyze that all models converge on this key point. Consider prioritizing it.',
+      'The council consensus suggests this is the most reliable recommendation.'
+    ];
+    
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    displayCounselorMessage(randomResponse, 'counselor');
+  }, 800);
+}
+
+// Display message in counselor chat
+// Display message in new ChatGPT-like interface
+function displayCounselorMessage(text, sender) {
+  const counselorMessagesList = document.getElementById('counselor-messages-list');
+  const recommendationsArea = document.getElementById('recommendations-area');
+  
+  // Hide recommendations on first message
+  if (recommendationsArea && recommendationsArea.style.display !== 'none') {
+    recommendationsArea.style.display = 'none';
+  }
+  
+  const messageEl = document.createElement('div');
+  messageEl.className = `counselor-message ${sender}`;
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'message-bubble';
+  bubble.textContent = text;
+  
+  messageEl.appendChild(bubble);
+  counselorMessagesList.appendChild(messageEl);
+  
+  // Scroll to bottom
+  const messagesArea = document.getElementById('counselor-messages-area');
+  if (messagesArea) {
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+  }
+}
+
+// Show counselor chat section (initialize interface)
+function showCounselorChat() {
+  // The interface is always visible, no need to show/hide
+  // This function is kept for compatibility
+}
+
+// Helper function to set message from recommendation pills
+function setMessage(text) {
+  counselorInput.value = text;
+  counselorInput.focus();
+  // Adjust textarea height
+  counselorInput.style.height = 'auto';
+  counselorInput.style.height = counselorInput.scrollHeight + 'px';
 }
 
 // Start the app

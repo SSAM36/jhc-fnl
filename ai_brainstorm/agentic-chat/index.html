@@ -2,404 +2,255 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><line x1=%22100%22 y1=%2250%22 x2=%2250%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%22100%22 y1=%2250%22 x2=%22150%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%2250%22 y1=%22100%22 x2=%22100%22 y2=%22150%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%22150%22 y1=%22100%22 x2=%22100%22 y2=%22150%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22/><line x1=%2250%22 y1=%22100%22 x2=%22150%22 y2=%22100%22 stroke=%22%236366f1%22 stroke-width=%223%22 stroke-linecap=%22round%22 opacity=%220.3%22/><circle cx=%22100%22 cy=%2250%22 r=%2212%22 fill=%22%238b5cf6%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%2250%22 cy=%22100%22 r=%2212%22 fill=%22%236366f1%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22150%22 cy=%22100%22 r=%2212%22 fill=%22%236366f1%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22100%22 cy=%22150%22 r=%2212%22 fill=%22%23a78bfa%22 stroke=%22%23fff%22 stroke-width=%223%22/><circle cx=%22100%22 cy=%22100%22 r=%228%22 fill=%22%23c4b5fd%22 stroke=%22%23fff%22 stroke-width=%222%22 opacity=%220.6%22/></svg>" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><circle cx=%22100%22 cy=%22100%22 r=%2280%22 fill=%22%233b82f6%22/><circle cx=%2260%22 cy=%2260%22 r=%2220%22 fill=%22%23fff%22/><circle cx=%22140%22 cy=%2260%22 r=%2220%22 fill=%22%23fff%22/><circle cx=%22100%22 cy=%22140%22 r=%2220%22 fill=%22%231e40af%22/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AI Brainstorm - Orchestrate multiple AI models to brainstorm and solve complex problems together" />
-    <title>AI Brainstorm - Multi-Model AI Collaboration</title>
+    <meta name="description" content="AI Council - Personal conversations with multiple AI models" />
+    <title>AI Council - Multi-Model Conversations</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-      /* Loading animation before CSS loads */
-      #app::before {
-        content: '';
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 50px;
-        height: 50px;
-        border: 3px solid var(--border-subtle);
-        border-top-color: var(--brand-primary);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        z-index: 1000;
-        display: none;
-      }
-      
-      .loading #app::before {
-        display: block;
-      }
-      
-      @keyframes spin {
-        to { transform: translate(-50%, -50%) rotate(360deg); }
-      }
-    </style>
   </head>
   <body>
-    <!-- Loading overlay -->
+    <!-- Loading Overlay -->
     <div class="loading-overlay">
       <div class="loading-spinner"></div>
-      <div class="loading-text">Initializing AI Council...</div>
+      <div class="loading-text">Loading AI Council...</div>
     </div>
-    
+
     <div id="app">
-      <!-- Session History (Left Sidebar) -->
+      <!-- LEFT SIDEBAR: History & Recommendations -->
       <div id="session-history" class="session-history">
-        <div class="session-header">
-          <div class="header-title">
-            <i class="fas fa-brain session-icon"></i>
-            <h2>Sessions</h2>
-          </div>
-          <button id="new-session-btn" class="new-session-btn">
-            <i class="fas fa-plus"></i> New
+        <div class="sidebar-header">
+          <h2><i class="fas fa-history"></i> History</h2>
+          <button id="new-session-btn" class="btn-new-session">
+            <i class="fas fa-plus"></i>
           </button>
         </div>
-        <div class="session-search">
+
+        <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" placeholder="Search sessions..." class="session-search-input">
+          <input type="text" placeholder="Search conversations...">
         </div>
-        <div id="session-list" class="session-list">
-          <!-- Sessions will be populated here -->
+
+        <div class="recommendations-section">
+          <h3>Recommendations</h3>
+          <div id="recommendations-list" class="recommendations-list"></div>
         </div>
-        <div class="resize-handle resize-handle-right" data-panel="session-history"></div>
+
+        <div class="sessions-section">
+          <h3>Recent Sessions</h3>
+          <div id="session-list" class="session-list"></div>
+        </div>
+
+        <!-- Conversation Details Section (Hidden by default) -->
+        <div class="conversation-details-section" id="conversation-details-section">
+          <div class="conversation-details-header">
+            <button id="close-conversation-btn" class="close-conversation-btn">
+              <i class="fas fa-arrow-left"></i>
+              <span>Back</span>
+            </button>
+            <h3 id="conversation-title">Conversation</h3>
+          </div>
+          <div id="conversation-messages-list" class="conversation-messages-list"></div>
+        </div>
       </div>
 
-      <!-- Main Chat (Center) -->
+      <!-- CENTER: Main Chat with One Model -->
       <div id="main-chat" class="main-chat">
-        <!-- Conversation Tree Navigation -->
-        <div id="conversation-tree-container" class="conversation-tree-container">
-          <div class="tree-header">
-            <div class="tree-header-left">
-              <button id="toggle-sidebar-btn" class="toggle-sidebar-btn" title="Toggle Sessions">
-                <i class="fas fa-bars"></i>
-              </button>
-              <button id="settings-btn" class="settings-btn" title="Settings">
-                <i class="fas fa-cog"></i>
-              </button>
-              <div class="model-indicator">
-                <span class="active-models-badge" id="active-models-count">0</span>
-                <span class="model-indicator-text">Models Active</span>
-              </div>
+        <!-- Model Selection Header -->
+        <div class="chat-header">
+          <div class="model-selector">
+            <button id="model-prev-btn" class="model-nav-btn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="current-model-info">
+              <div class="model-name" id="current-model-name">Claude Opus</div>
+              <div class="model-status">Online</div>
             </div>
-            <div id="tree-header-center" class="tree-header-center" title="Click to collapse/expand">
-              <span id="tree-collapse-icon" class="tree-collapse-icon">
-                <i class="fas fa-chevron-down"></i>
-              </span>
-              <h3>
-                <i class="fas fa-project-diagram"></i>
-                Conversations
-              </h3>
-            </div>
-            <div class="tree-header-right">
-              <span id="tree-indicator" class="tree-indicator">
-                <i class="fas fa-comments"></i>
-                <span id="conversation-count">0 conversations</span>
-              </span>
-              <button id="toggle-agent-panel-btn" class="toggle-agent-panel-btn" title="Toggle Agent Chat">
-                <i class="fas fa-robot"></i>
-              </button>
-              <button id="council-mode-btn" class="council-mode-btn" title="Start Council Session">
-                <i class="fas fa-users"></i>
-              </button>
-            </div>
+            <button id="model-next-btn" class="model-nav-btn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
-          <div id="conversation-tree" class="conversation-tree-scroll">
-            <!-- Conversation tree will be populated here -->
+          <button id="toggle-sidebar-btn" class="btn-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <!-- Model indicators -->
+        <div class="model-indicators">
+          <div class="model-indicator active" data-model="1">
+            <span class="indicator-dot"></span>
+            <span class="indicator-label">Model 1</span>
           </div>
-          <div id="tree-resize-handle" class="tree-resize-handle">
-            <div class="resize-dots">
-              <div class="resize-dot"></div>
-              <div class="resize-dot"></div>
-              <div class="resize-dot"></div>
-            </div>
+          <div class="model-indicator" data-model="2">
+            <span class="indicator-dot"></span>
+            <span class="indicator-label">Model 2</span>
+          </div>
+          <div class="model-indicator" data-model="3">
+            <span class="indicator-dot"></span>
+            <span class="indicator-label">Model 3</span>
           </div>
         </div>
-        
+
+        <!-- Debate Mode Button -->
+        <div class="debate-mode-container">
+          <button id="debate-mode-btn" class="debate-mode-btn" title="Enter Debate Mode">
+            <i class="fas fa-comments"></i>
+            <span>Debate Mode</span>
+          </button>
+        </div>
+
         <!-- Chat Messages -->
-        <div id="chat-messages" class="chat-messages">
-          <!-- Messages will be populated here -->
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <i class="fas fa-comments"></i>
-            </div>
-            <h3>Start a Conversation</h3>
-            <p>Type a message below or use the Agent panel to brainstorm with multiple AI models.</p>
-            <div class="quick-actions">
-              <button class="quick-action" data-prompt="Compare different AI models">
-                <i class="fas fa-balance-scale"></i>
-                Compare Models
-              </button>
-              <button class="quick-action" data-prompt="Brainstorm creative ideas">
-                <i class="fas fa-lightbulb"></i>
-                Brainstorm Ideas
-              </button>
-              <button class="quick-action" data-prompt="Explain a complex concept">
-                <i class="fas fa-book"></i>
-                Learn Something
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Branch Navigation (Vertical) -->
-        <div class="branch-indicator">
-          <div class="branch-line"></div>
-          <div class="branch-dots-container">
-            <!-- Branch dots will be populated here -->
-          </div>
-          <div class="branch-scroll-progress"></div>
-        </div>
-        
-        <!-- Legacy Navigation (kept for keyboard shortcuts) -->
+        <div id="chat-messages" class="chat-messages"></div>
+
+        <!-- Hidden Navigation -->
         <div class="chat-navigation" style="display: none;">
-          <button id="prev-btn" class="nav-btn">
-            <i class="fas fa-chevron-left"></i>
-          </button>
+          <button id="prev-btn" class="nav-btn">&lt;</button>
           <span id="conversation-indicator" class="conversation-indicator">No conversations</span>
-          <button id="next-btn" class="nav-btn">
-            <i class="fas fa-chevron-right"></i>
-          </button>
+          <button id="next-btn" class="nav-btn">&gt;</button>
         </div>
-        
+
         <!-- Chat Input -->
-        <div class="chat-input-container">
-          <div class="input-header">
-            <div class="model-selector">
-              <select id="model-select" class="model-select">
-                <option value="all">All Active Models</option>
-                <!-- Models will be populated here -->
-              </select>
-              <button class="model-selector-toggle">
-                <i class="fas fa-chevron-down"></i>
-              </button>
-            </div>
+        <div class="chat-input-area">
+          <div class="chat-input-container">
+            <textarea id="chat-input" class="chat-input" placeholder="Ask your counselor..." rows="1"></textarea>
             <div class="input-actions">
-              <button class="action-btn" title="Attach File">
-                <i class="fas fa-paperclip"></i>
-              </button>
-              <button class="action-btn" title="Format Text">
-                <i class="fas fa-font"></i>
-              </button>
-              <button class="action-btn" title="Clear Conversation">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
-          </div>
-          <div class="chat-input-wrapper">
-            <textarea id="chat-input" class="chat-input" placeholder="Type your message or use '/' for commands..." rows="1"></textarea>
-            <div class="input-buttons">
-              <button class="microphone-btn" title="Voice Input">
+              <button id="voice-btn" class="btn-action" title="Voice input">
                 <i class="fas fa-microphone"></i>
               </button>
-              <button id="send-btn" class="send-btn">
+              <button id="send-btn" class="btn-send" title="Send message">
                 <i class="fas fa-paper-plane"></i>
-                <span class="btn-text">Send</span>
               </button>
             </div>
-          </div>
-          <div class="input-hint">
-            <span><i class="fas fa-info-circle"></i> Press Enter to send, Shift+Enter for new line</span>
-            <span><i class="fas fa-bolt"></i> Use @ to mention specific models</span>
           </div>
         </div>
       </div>
 
-      <!-- Agent Chat Panel (Right) -->
-      <div id="agent-panel" class="agent-panel">
-        <div class="resize-handle resize-handle-left" data-panel="agent-panel"></div>
-        <div class="agent-header">
-          <div class="agent-header-top">
-            <div class="agent-chat-selector">
-              <select id="agent-chat-select" class="agent-chat-select">
-                <option value="default">🤖 Agent Chat</option>
-                <option value="council">👥 Council Session</option>
-                <option value="analysis">📊 Analysis</option>
-                <option value="comparison">⚖️ Comparison</option>
-              </select>
-              <button id="new-agent-chat-btn" class="new-agent-chat-btn" title="New Agent Chat">
-                <i class="fas fa-plus"></i>
-              </button>
-            </div>
-            <div class="agent-actions">
-              <button class="agent-action-btn" title="Export Chat">
-                <i class="fas fa-download"></i>
-              </button>
-              <button class="agent-action-btn" title="Clear Chat">
-                <i class="fas fa-eraser"></i>
-              </button>
-              <button id="delete-agent-chat-btn" class="delete-agent-chat-btn" title="Delete Chat">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
-          </div>
-          <div class="agent-header-model">
-            <span class="agent-model-label">
+      <!-- RIGHT SIDEBAR: Analysis & Results -->
+      <div id="results-panel" class="results-panel">
+        <div class="sidebar-header">
+          <h2>
+            <div class="robot-icon">
               <i class="fas fa-robot"></i>
-              Agent:
-            </span>
-            <span id="agent-model-display" class="agent-model-name" title="Click to change in Settings">
-              Grok 4 Fast
-            </span>
-            <div class="agent-status">
-              <span class="status-dot active"></span>
-              <span class="status-text">Connected</span>
             </div>
-          </div>
-          <div class="agent-tabs">
-            <button class="agent-tab active">
-              <i class="fas fa-comment"></i>
-              Chat
-            </button>
-            <button class="agent-tab">
-              <i class="fas fa-chart-bar"></i>
-              Analysis
-            </button>
-            <button class="agent-tab">
-              <i class="fas fa-cog"></i>
-              Settings
-            </button>
-          </div>
+            AI Council
+          </h2>
+          <button id="toggle-results-btn" class="btn-toggle">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
 
-        <div class="agent-chat-section">
-          <div id="agent-messages" class="agent-messages">
-            <!-- Agent messages will be populated here -->
-            <div class="agent-welcome">
-              <div class="agent-welcome-icon">
-                <i class="fas fa-brain"></i>
-              </div>
-              <div class="agent-welcome-title">AI Council Assistant</div>
-              <div class="agent-welcome-text">
-                I can help you orchestrate multiple AI models, analyze conversations, 
-                and provide insights. What would you like to do?
-              </div>
-              
-              <div class="agent-welcome-section">
-                <div class="agent-welcome-section-title">
-                  <i class="fas fa-lightbulb"></i>
-                  Quick Actions
+        <div class="analysis-content">
+          <!-- ChatGPT-like Counselor Chat Interface -->
+          <div class="counselor-chat-interface">
+            <!-- Messages Area -->
+            <div id="counselor-messages-area" class="counselor-messages-area">
+              <!-- Initial welcome message -->
+              <div class="counselor-welcome">
+                <div class="welcome-icon">🤖</div>
+                <div class="welcome-text">
+                  <h3>AI Council Counselor</h3>
+                  <p>Get insights and guidance from the AI Council consensus</p>
                 </div>
-                <div class="agent-welcome-suggestions">
-                  <button class="agent-welcome-suggestion" data-action="compare-models">
-                    <div class="suggestion-icon">
-                      <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <div class="suggestion-content">
-                      <div class="suggestion-title">Compare AI Models</div>
-                      <div class="suggestion-desc">Get perspectives from different models on a topic</div>
-                    </div>
+              </div>
+
+              <!-- Recommendations Pills (Initial suggestions) -->
+              <div class="recommendations-pills" id="recommendations-area">
+                <div class="pill-label">Recommended Questions:</div>
+                <div class="pills-container">
+                  <button class="recommendation-pill" onclick="setMessage('What is the consensus of all models?')">
+                    <i class="fas fa-lightbulb"></i> Consensus Analysis
                   </button>
-                  
-                  <button class="agent-welcome-suggestion featured" data-action="start-council">
-                    <div class="suggestion-icon">
-                      <i class="fas fa-users"></i>
-                    </div>
-                    <div class="suggestion-content">
-                      <div class="suggestion-title">Start Council Session</div>
-                      <div class="suggestion-desc">Multiple AI models debate and synthesize answers</div>
-                    </div>
-                    <div class="suggestion-badge">New</div>
+                  <button class="recommendation-pill" onclick="setMessage('What are key differences?')">
+                    <i class="fas fa-compare"></i> Key Differences
                   </button>
-                  
-                  <button class="agent-welcome-suggestion" data-action="analyze-conversation">
-                    <div class="suggestion-icon">
-                      <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="suggestion-content">
-                      <div class="suggestion-title">Analyze Conversation</div>
-                      <div class="suggestion-desc">Get insights from your chat history</div>
-                    </div>
-                  </button>
-                  
-                  <button class="agent-welcome-suggestion" data-action="generate-ideas">
-                    <div class="suggestion-icon">
-                      <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <div class="suggestion-content">
-                      <div class="suggestion-title">Brainstorm Ideas</div>
-                      <div class="suggestion-desc">Generate creative suggestions with multiple AIs</div>
-                    </div>
+                  <button class="recommendation-pill" onclick="setMessage('What should I do next?')">
+                    <i class="fas fa-arrow-right"></i> Next Steps
                   </button>
                 </div>
               </div>
-              
-              <div class="agent-welcome-section">
-                <div class="agent-welcome-section-title">
-                  <i class="fas fa-history"></i>
-                  Recent Sessions
-                </div>
-                <div class="recent-sessions">
-                  <div class="recent-session">
-                    <div class="recent-session-title">Project Brainstorm</div>
-                    <div class="recent-session-time">2 hours ago</div>
-                  </div>
-                  <div class="recent-session">
-                    <div class="recent-session-title">Technical Review</div>
-                    <div class="recent-session-time">Yesterday</div>
-                  </div>
-                </div>
-              </div>
+
+              <!-- Chat Messages Display -->
+              <div id="counselor-messages-list" class="counselor-messages-list"></div>
             </div>
-          </div>
-          
-          <!-- Suggestions section for council and other actions -->
-          <div id="agent-suggestions" class="agent-suggestions">
-            <div class="suggestions-label">
-              <i class="fas fa-magic"></i>
-              Quick Suggestions
-            </div>
-            <div class="suggestion-buttons">
-              <button class="suggestion-btn" data-suggestion="compare">
-                <i class="fas fa-balance-scale"></i>
-                Compare Models
-              </button>
-              <button class="suggestion-btn" data-suggestion="summarize">
-                <i class="fas fa-file-alt"></i>
-                Summarize Chat
-              </button>
-              <button class="suggestion-btn" data-suggestion="continue">
-                <i class="fas fa-forward"></i>
-                Continue Thread
-              </button>
-            </div>
-          </div>
-          
-          <div class="agent-input-wrapper">
-            <div class="agent-input-container">
-              <div class="agent-input-header">
-                <div class="input-mode">
-                  <span class="mode-indicator">
-                    <i class="fas fa-robot"></i>
-                    Agent Mode
-                  </span>
-                </div>
-                <div class="input-tools">
-                  <button class="tool-btn" title="Add Attachment">
-                    <i class="fas fa-paperclip"></i>
-                  </button>
-                  <button class="tool-btn" title="Format">
-                    <i class="fas fa-font"></i>
-                  </button>
-                  <button class="tool-btn" title="Clear">
-                    <i class="fas fa-eraser"></i>
-                  </button>
-                </div>
-              </div>
-              <textarea id="agent-input" class="agent-input" 
-                placeholder="Ask the agent to brainstorm, compare models, or analyze responses..." 
-                rows="1"></textarea>
-              <div class="agent-input-footer">
-                <div class="word-count">
-                  <span class="count">0</span> words
-                </div>
-                <button id="agent-send-btn" class="agent-send-btn" title="Send message">
+
+            <!-- Input Area (Bottom - like ChatGPT) -->
+            <div class="counselor-input-box">
+              <div class="input-wrapper">
+                <textarea id="counselor-input" class="counselor-textarea" placeholder="Ask the AI Council something..." rows="1"></textarea>
+                <button id="send-to-counselor-btn" class="btn-send-message" title="Send message">
                   <i class="fas fa-paper-plane"></i>
-                  <span class="send-text">Send</span>
                 </button>
               </div>
+              <div class="input-footer">
+                <small>Get recommendations from the AI Council</small>
+              </div>
             </div>
-            <div class="agent-input-hint">
-              <i class="fas fa-info-circle"></i>
-              Press Enter to send, Shift+Enter for new line • Use @ to mention specific models
+          </div>
+
+          <!-- Hidden Sections (Shown in debate/analysis mode) -->
+          
+          <!-- Reasoning Timeline Section -->
+          <div class="analysis-section" id="reasoning-timeline-section" style="display: none;">
+            <h3><i class="fas fa-brain"></i> Reasoning Timeline</h3>
+            <div class="reasoning-timeline">
+              <div class="timeline-stage" data-stage="1">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-label">Stage 1: Initial Thought</div>
+                  <div class="timeline-text" id="stage-1-text">Analyzing the question...</div>
+                </div>
+              </div>
+              <div class="timeline-stage" data-stage="2">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-label">Stage 2: Evaluation</div>
+                  <div class="timeline-text" id="stage-2-text">Evaluating perspectives...</div>
+                </div>
+              </div>
+              <div class="timeline-stage" data-stage="3">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-label">Stage 3: Counter-arguments</div>
+                  <div class="timeline-text" id="stage-3-text">Considering alternatives...</div>
+                </div>
+              </div>
+              <div class="timeline-stage" data-stage="4">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <div class="timeline-label">Stage 4: Final Answer</div>
+                  <div class="timeline-text" id="stage-4-text">Formulating conclusion...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Models Results Section -->
+          <div class="analysis-section" id="models-section" style="display: none;">
+            <h3>Model Responses</h3>
+            <div id="models-results" class="models-results">
+              <div class="result-box">
+                <div class="result-box-title">Waiting for responses...</div>
+                <div class="result-box-content">Send a message to see model responses here</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referee Conclusion Section -->
+          <div class="analysis-section" id="referee-conclusion-section" style="display: none;">
+            <h3>🎯 Referee Conclusion</h3>
+            <div id="referee-conclusion" class="referee-conclusion">
+              <div class="conclusion-header">Analysis Summary</div>
+              <div id="conclusion-points" class="conclusion-points"></div>
+            </div>
+          </div>
+
+          <!-- Analysis Graph Section -->
+          <div class="analysis-section" id="graph-section" style="display: none;">
+            <h3>Response Analysis</h3>
+            <div class="graph-container">
+              <div class="graph-placeholder">
+                <i class="fas fa-chart-line"></i>
+                <div>Graph visualization will appear here</div>
+              </div>
             </div>
           </div>
         </div>
@@ -410,265 +261,27 @@
     <div id="settings-modal-backdrop" class="modal-backdrop" style="display: none;">
       <div class="settings-modal">
         <div class="modal-header">
-          <h2>
-            <i class="fas fa-cog"></i>
-            Settings
-          </h2>
+          <h2>Settings</h2>
           <button id="modal-close-btn" class="modal-close-btn" title="Close">
             <i class="fas fa-times"></i>
           </button>
         </div>
         <div class="modal-content">
-          <!-- API Key Section -->
           <div class="modal-section">
-            <h3>
-              <i class="fas fa-key"></i>
-              API Configuration
-            </h3>
+            <h3>API Key</h3>
             <div class="modal-input-group">
-              <div class="input-with-icon">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="modal-api-key-input" class="modal-input" placeholder="Enter OpenRouter API Key" />
-              </div>
-              <button id="modal-save-api-key-btn" class="modal-btn modal-btn-success">
-                <i class="fas fa-save"></i>
-                Save
-              </button>
-            </div>
-            <div class="api-info">
-              <i class="fas fa-info-circle"></i>
-              <span>Your API key is stored locally and never sent to our servers.</span>
+              <input type="password" id="modal-api-key-input" class="modal-input" placeholder="Enter OpenRouter API Key" />
+              <button id="modal-save-api-key-btn" class="btn-primary">Save</button>
             </div>
           </div>
 
-          <!-- Agent Model Section -->
           <div class="modal-section">
-            <h3>
-              <i class="fas fa-robot"></i>
-              Agent Model
-            </h3>
-            <p class="modal-section-desc">The model used to orchestrate conversations. Pick a preset or enter a custom model ID.</p>
-            
-            <div class="agent-model-config">
-              <div class="agent-model-row">
-                <div class="agent-model-suggestions">
-                  <label class="modal-label">
-                    <i class="fas fa-star"></i>
-                    Presets
-                  </label>
-                  <select id="modal-agent-model-select" class="modal-select">
-                    <option value="">-- Select a preset --</option>
-                    <optgroup label="⚡ Fast & Cheap">
-                      <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
-                      <option value="x-ai/grok-4-fast" selected>Grok 4 Fast</option>
-                      <option value="openai/gpt-5-mini">GPT-5 Mini</option>
-                      <option value="anthropic/claude-haiku-4.5">Claude Haiku 4.5</option>
-                    </optgroup>
-                    <optgroup label="🏆 Premium">
-                      <option value="anthropic/claude-opus-4.5">Claude Opus 4.5</option>
-                      <option value="google/gemini-3-pro-preview">Gemini 3 Pro Preview</option>
-                      <option value="openai/gpt-5.1">GPT-5.1</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <div class="agent-model-custom">
-                  <label class="modal-label">
-                    <i class="fas fa-code"></i>
-                    Custom Model
-                  </label>
-                  <div class="modal-input-group">
-                    <input type="text" id="modal-agent-model-input" class="modal-input" placeholder="e.g., openai/gpt-4o" />
-                    <button id="modal-set-agent-model-btn" class="modal-btn modal-btn-primary">
-                      <i class="fas fa-check"></i>
-                      Set
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="agent-model-current">
-                <div class="current-model-info">
-                  <span class="modal-label">Current Agent:</span>
-                  <span id="modal-current-agent-model" class="current-model-badge">
-                    <i class="fas fa-robot"></i>
-                    Grok 4 Fast
-                  </span>
-                </div>
-                <div class="model-stats">
-                  <span class="stat">
-                    <i class="fas fa-bolt"></i>
-                    Fast
-                  </span>
-                  <span class="stat">
-                    <i class="fas fa-coins"></i>
-                    Cheap
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Active Models Section -->
-          <div class="modal-section">
-            <div class="modal-section-header">
-              <h3>
-                <i class="fas fa-users"></i>
-                Active Models
-              </h3>
-              <div class="preset-selector-group">
-                <select id="modal-preset-select" class="modal-select-inline">
-                  <option value="">Custom Configuration</option>
-                  <option value="max">Max (Premium)</option>
-                  <option value="fast-cheap" selected>Fast & Cheap</option>
-                  <option value="exp">Experimental</option>
-                </select>
-                <button class="preset-apply-btn">
-                  <i class="fas fa-check"></i>
-                  Apply
-                </button>
-              </div>
-            </div>
-            
-            <div class="models-info">
-              <i class="fas fa-info-circle"></i>
-              <span>Selected models will participate in council sessions and comparisons.</span>
-            </div>
-            
-            <div id="modal-active-models-list" class="modal-models-list">
-              <!-- Models will be populated here -->
-              <div class="modal-model-item">
-                <div class="model-select-checkbox">
-                  <input type="checkbox" checked>
-                </div>
-                <div class="modal-model-info">
-                  <div class="modal-model-name">
-                    <i class="fab fa-google"></i>
-                    Gemini 2.5 Flash
-                  </div>
-                  <div class="modal-model-id">google/gemini-2.5-flash</div>
-                </div>
-                <div class="model-tags">
-                  <span class="model-tag fast">
-                    <i class="fas fa-bolt"></i>
-                    Fast
-                  </span>
-                  <span class="model-tag cheap">
-                    <i class="fas fa-coins"></i>
-                    Cheap
-                  </span>
-                </div>
-              </div>
-            </div>
-            
+            <h3>Active Models</h3>
+            <div id="modal-active-models-list" class="modal-models-list"></div>
             <div class="modal-add-model-form">
-              <div class="add-model-inputs">
-                <div class="input-with-icon">
-                  <i class="fas fa-code"></i>
-                  <input type="text" id="modal-model-id-input" class="modal-input" placeholder="Model ID (e.g., openai/gpt-4o)" />
-                </div>
-                <div class="input-with-icon">
-                  <i class="fas fa-font"></i>
-                  <input type="text" id="modal-model-name-input" class="modal-input" placeholder="Model Name" />
-                </div>
-                <button id="modal-add-model-btn" class="modal-btn modal-btn-primary">
-                  <i class="fas fa-plus"></i>
-                  Add Model
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Advanced Settings -->
-          <div class="modal-section">
-            <h3>
-              <i class="fas fa-sliders-h"></i>
-              Advanced Settings
-            </h3>
-            <div class="settings-grid">
-              <div class="setting-item">
-                <label class="setting-label">
-                  <i class="fas fa-temperature-high"></i>
-                  Temperature
-                </label>
-                <input type="range" min="0" max="1" step="0.1" value="0.7" class="setting-slider">
-                <span class="setting-value">0.7</span>
-              </div>
-              
-              <div class="setting-item">
-                <label class="setting-label">
-                  <i class="fas fa-brain"></i>
-                  Max Tokens
-                </label>
-                <input type="range" min="100" max="4000" step="100" value="2000" class="setting-slider">
-                <span class="setting-value">2000</span>
-              </div>
-              
-              <div class="setting-item toggle-setting">
-                <label class="setting-label">
-                  <i class="fas fa-code-branch"></i>
-                  Enable Branching
-                </label>
-                <label class="switch">
-                  <input type="checkbox" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-              
-              <div class="setting-item toggle-setting">
-                <label class="setting-label">
-                  <i class="fas fa-history"></i>
-                  Save History
-                </label>
-                <label class="switch">
-                  <input type="checkbox" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="modal-footer">
-          <button class="modal-btn modal-btn-secondary">
-            <i class="fas fa-times"></i>
-            Cancel
-          </button>
-          <button class="modal-btn modal-btn-primary">
-            <i class="fas fa-save"></i>
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Help Modal -->
-    <div class="help-modal">
-      <div class="help-content">
-        <div class="help-header">
-          <h3><i class="fas fa-question-circle"></i> Quick Help</h3>
-          <button class="help-close">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="help-body">
-          <div class="help-section">
-            <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
-            <div class="shortcuts">
-              <div class="shortcut">
-                <kbd>Ctrl/Cmd + N</kbd>
-                <span>New Session</span>
-              </div>
-              <div class="shortcut">
-                <kbd>Ctrl/Cmd + K</kbd>
-                <span>Focus Chat</span>
-              </div>
-              <div class="shortcut">
-                <kbd>Ctrl/Cmd + /</kbd>
-                <span>Toggle Agent</span>
-              </div>
-              <div class="shortcut">
-                <kbd>Ctrl/Cmd + ,</kbd>
-                <span>Settings</span>
-              </div>
+              <input type="text" id="modal-model-id-input" class="modal-input" placeholder="Model ID" />
+              <input type="text" id="modal-model-name-input" class="modal-input" placeholder="Model Name" />
+              <button id="modal-add-model-btn" class="btn-primary">Add Model</button>
             </div>
           </div>
         </div>
